@@ -1,50 +1,21 @@
 #Master Organization
-
-  OrdererOrgs:
+OrdererOrgs:
 - Name: OrdereringService
-  Domain : example.com
-  specs:
-    -Hostname: Orderer
-
-
+  Domain: orh.in
+  Specs:
+    - Hostname: orderer
+#Organization-1
 PeerOrgs:
-
-#Organization1 (ID-1)
-
-- Name : nsp1
-  Domain: nsp1.example.com
-  EnableNodeOUs: true
-Templete:
-  Count: 2
-Users:
-    Count: 1
-
+- Name: nsp1
+  Domain: nsp1.orh.in
+  Template:
+     Count: 2
+  Users:
+     Count: 1
 #Organization2 (NSP-1)
-
-- Name : nsp2
-  Domain: nsp2.example.com
-  EnableNodeOUs: true
-Templete:
-  Count: 2
-Users:
-    Count: 1
-
-#Organization3 (NSP-2)
-
-- Name : nsp3
-  Domain: nsp3.example.com
-  EnableNodeOUs: true
-Templete:
-  Count: 2
-Users:
-    Count: 1
-
-#Organization4 (ID-2)
-
-- Name : nsp4
-  Domain: nsp4.example.com
-  EnableNodeOUs: true
-Templete:
-  Count: 2
-Users:
-    Count: 1
+- Name: nsp2
+  Domain: nsp2.orh.in
+  Template:
+     Count: 2
+  Users:
+     Count: 1

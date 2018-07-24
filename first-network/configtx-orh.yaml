@@ -23,7 +23,7 @@ Organizations:
         ID: OrdererMSP
 
 
-        MSPDir: crypto-config/ordererOrganizations/example.com/msp
+        MSPDir: crypto-config/ordererOrganizations/orh.in/msp
 
     - &NSP1
 
@@ -32,11 +32,11 @@ Organizations:
 
         ID: NSP1MSP
 
-        MSPDir: crypto-config/peerOrganizations/nsp1.example.com/msp
+        MSPDir: crypto-config/peerOrganizations/nsp1.orh.in/msp
 
         AnchorPeers:
 
-            - Host: peer0.nsp1.example.com
+            - Host: peer0.nsp1.orh.in
               Port: 7051
 
     - &NSP2
@@ -46,42 +46,12 @@ Organizations:
 
         ID: NSP2MSP
 
-        MSPDir: crypto-config/peerOrganizations/nsp2.example.com/msp
+        MSPDir: crypto-config/peerOrganizations/nsp2.orh.in/msp
 
         AnchorPeers:
 
-            - Host: peer0.nsp2.example.com
+            - Host: peer0.nsp1.orh.in
               Port: 7051
-
-- &NSP3
-
-        Name: NSP3MSP
-
-
-        ID: NSP3MSP
-
-        MSPDir: crypto-config/peerOrganizations/nsp3.example.com/msp
-
-        AnchorPeers:
-
-            - Host: peer0.nsp3.example.com
-              Port: 7051
-
-
- - &NSP4
-
-        Name: NSP4MSP
-
-
-        ID: NSP4MSP
-
-        MSPDir: crypto-config/peerOrganizations/nsp4.example.com/msp
-
-        AnchorPeers:
-
-            - Host: peer0.nsp4.example.com
-              Port: 7051
-
 
 
 
@@ -114,7 +84,7 @@ Orderer: &OrdererDefaults
     OrdererType: solo
 
     Addresses:
-        - orderer.example.com:7050
+        - orderer.orh.in:7050
 
 
     BatchTimeout: 2s
@@ -152,18 +122,14 @@ Profiles:
         Consortiums:
             SampleConsortium:
                 Organizations:
-                    - *nsp1
-                    - *nsp2
-                    - *nsp3
-                    - *nsp4
+                    - *NSP1
+                    - *NSP2
     TwoOrgsChannel:
         Consortium: SampleConsortium
         Application:
             <<: *ApplicationDefaults
             Organizations:
-                - *nsp1
-                - *nsp2
-                - *nsp3
-                - *nsp4
+                - *NSP1
+                - *NSP2
             Capabilities:
                 <<: *ApplicationCapabilities
