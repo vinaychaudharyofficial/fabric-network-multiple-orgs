@@ -1,0 +1,464 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# this file is the combination of docker-compose-couch.yaml (database) + docker-compose-e2e-template.yaml +
+#docker-compose-base.yaml
+
+version: '2'
+
+volumes:
+  orderer.example.com:
+  peer0.nsp1.example.com:
+  peer1.nsp1.example.com:
+  peer0.nsp2.example.com:
+  peer1.nsp2.example.com:
+  peer0.nsp3.example.com:
+  peer1.nsp3.example.com:
+  peer0.nsp4.example.com:
+  peer1.nsp4.example.com:
+
+networks:
+  byfn:
+services:
+  ca0:
+    image: hyperledger/fabric-ca:$IMAGE_TAG
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca-nsp1
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.nsp1.example.com-cert.pem
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/CA1_PRIVATE_KEY
+    ports:
+      - "7054:7054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.nsp1.example.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/CA1_PRIVATE_KEY -b admin:adminpw -d'
+    volumes:
+      - ./crypto-config/peerOrganizations/nsp1.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca_peernsp1
+    networks:
+      - byfn
+
+  ca1:
+    image: hyperledger/fabric-ca:$IMAGE_TAG
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca-nsp2
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.nsp2.example.com-cert.pem
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/CA2_PRIVATE_KEY
+    ports:
+      - "8054:7054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.nsp2.example.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/CA2_PRIVATE_KEY -b admin:adminpw -d'
+    volumes:
+      - ./crypto-config/peerOrganizations/nsp2.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca_peernsp2
+    networks:
+      - byfn
+
+      ca2:
+        image: hyperledger/fabric-ca:$IMAGE_TAG
+        environment:
+          - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+          - FABRIC_CA_SERVER_CA_NAME=ca-nsp3
+          - FABRIC_CA_SERVER_TLS_ENABLED=true
+          - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.nsp3.example.com-cert.pem
+          - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/CA1_PRIVATE_KEY
+        ports:
+          - "7054:7054"
+        command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.nsp3.example.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/CA1_PRIVATE_KEY -b admin:adminpw -d'
+        volumes:
+          - ./crypto-config/peerOrganizations/nsp3.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
+        container_name: ca_peernsp3
+        networks:
+          - byfn
+       ca3:
+         image: hyperledger/fabric-ca:$IMAGE_TAG
+         environment:
+           - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+           - FABRIC_CA_SERVER_CA_NAME=ca-nsp3
+           - FABRIC_CA_SERVER_TLS_ENABLED=true
+           - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.nsp4.example.com-cert.pem
+           - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/CA1_PRIVATE_KEY
+         ports:
+           - "7054:7054"
+         command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.nsp4.example.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/CA1_PRIVATE_KEY -b admin:adminpw -d'
+         volumes:
+           - ./crypto-config/peerOrganizations/nsp4.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
+         container_name: ca_peernsp4
+         networks:
+           - byfn
+
+
+  orderer.example.com:
+  extends:
+       container_name: orderer.example.com
+       image: hyperledger/fabric-orderer:$IMAGE_TAG
+  environment:
+     - ORDERER_GENERAL_LOGLEVEL=INFO
+     - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+     - ORDERER_GENERAL_GENESISMETHOD=file
+     - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+     - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+     - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+     - ORDERER_GENERAL_TLS_ENABLED=true
+     - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+     - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+     - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+command: orderer
+volumes:
+- ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+- ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/var/hyperledger/orderer/msp
+- ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/:/var/hyperledger/orderer/tls
+- orderer.example.com:/var/hyperledger/production/orderer
+ports:
+  - 7050:7050
+
+file: base/docker-compose-base.yaml
+service: orderer.example.com
+container_name: orderer.example.com
+networks:
+      - byfn
+
+
+peer0.nsp1.example.com:
+
+container_name: peer0.nsp1.example.com
+  extends:
+      file: peer-base.yaml
+      service: peer-base
+  environment:
+      - CORE_PEER_ID=peer0.nsp1.example.com
+      - CORE_PEER_ADDRESS=peer0.nsp1.example.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.nsp1.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.nsp1.example.com:7051
+      - CORE_PEER_LOCALMSPID=NSP1MSP
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdbnsp1peer0:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+      - COUCHDB_USER=
+      - COUCHDB_PASSWORD=
+  volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/nsp1.example.com/peers/peer0.nsp1.example.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/nsp1.example.com/peers/peer0.nsp1.example.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.nsp1.example.com:/var/hyperledger/production
+  ports:
+      - 7051:7051
+      - 7053:7053
+
+  depends_on:
+    - couchdbnsp1peer0
+
+  couchdb1:
+  container_name: couchdbnsp1peer0
+  image: hyperledger/fabric-couchdb
+
+  ports:
+    - "6984:5984"
+
+  extends:
+    file:  base/docker-compose-base.yaml
+    service: peer0.nsp1.example.com
+    networks:
+      - byfn
+
+peer1.nsp1.example.com:
+  container_name: peer1.nsp1.example.com
+
+  extends:
+      file: peer-base.yaml
+      service: peer-base
+  environment:
+        - CORE_PEER_ID=peer1.nsp1.example.com
+        - CORE_PEER_ADDRESS=peer1.nsp1.example.com:7051
+        - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.nsp1.example.com:7051
+        - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.nsp1.example.com:7051
+        - CORE_PEER_LOCALMSPID=NSP1MSP
+        - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+        - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdbnsp1peer1:5984
+        - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+        - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+        - COUCHDB_USER=
+        - COUCHDB_PASSWORD=
+  volumes:
+          - /var/run/:/host/var/run/
+          - ../crypto-config/peerOrganizations/nsp1.example.com/peers/peer1.nsp1.example.com/msp:/etc/hyperledger/fabric/msp
+          - ../crypto-config/peerOrganizations/nsp1.example.com/peers/peer1.nsp1.example.com/tls:/etc/hyperledger/fabric/tls
+          - peer1.nsp1.example.com:/var/hyperledger/production
+  ports:
+        - 7051:7051
+        - 7053:7053
+
+  depends_on:
+      - couchdbnsp1peer1
+
+  couchdb1:
+    container_name: couchdbnsp1peer1
+    image: hyperledger/fabric-couchdb
+
+  ports:
+      - "6984:5984"
+
+  extends:
+      file:  base/docker-compose-base.yaml
+      service: peer1.nsp1.example.com
+     networks:
+      - byfn
+
+peer0.nsp2.example.com:
+  container_name: peer0.nsp2.example.com
+
+extends:
+  file: peer-base.yaml
+  service: peer-base
+environment:
+    - CORE_PEER_ID=peer0.nsp2.example.com
+    - CORE_PEER_ADDRESS=peer0.nsp2.example.com:7051
+    - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.nsp2.example.com:7051
+    - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.nsp2.example.com:7051
+    - CORE_PEER_LOCALMSPID=NSP2MSP
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdbnsp2peer0:5984
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+    - COUCHDB_USER=
+    - COUCHDB_PASSWORD=
+  volumes:
+      - /var/run/:/host/var/run/
+      - ../crypto-config/peerOrganizations/nsp2.example.com/peers/peer0.nsp2.example.com/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/nsp2.example.com/peers/peer0.nsp2.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer0.nsp2.example.com:/var/hyperledger/production
+  ports:
+    - 7051:7051
+    - 7053:7053
+
+depends_on:
+  - couchdbnsp2peer0
+
+couchdb1:
+container_name: couchdbnsp2peer0
+image: hyperledger/fabric-couchdb
+
+ports:
+  - "6984:5984"
+
+extends:
+    file:  base/docker-compose-base.yaml
+    service: peer0.nsp2.example.com
+    networks:
+      - byfn
+
+peer1.nsp2.example.com:
+  container_name: peer1.nsp2.example.com
+
+extends:
+    file: peer-base.yaml
+    service: peer-base
+environment:
+    - CORE_PEER_ID=peer1.nsp2.example.com
+    - CORE_PEER_ADDRESS=peer1.nsp2.example.com:7051
+    - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.nsp2.example.com:7051
+    - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.nsp2.example.com:7051
+    - CORE_PEER_LOCALMSPID=NSP2MSP
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdbnsp2peer1:5984
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+    - COUCHDB_USER=
+    - COUCHDB_PASSWORD=
+volumes:
+      - /var/run/:/host/var/run/
+      - ../crypto-config/peerOrganizations/nsp2.example.com/peers/peer1.nsp2.example.com/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/nsp2.example.com/peers/peer1.nsp2.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer1.nsp2.example.com:/var/hyperledger/production
+ports:
+    - 7051:7051
+    - 7053:7053
+
+depends_on:
+  - couchdbnsp2peer1
+
+couchdb1:
+container_name: couchdbnsp2peer1
+image: hyperledger/fabric-couchdb
+
+ports:
+  - "6984:5984"
+
+extends:
+      file:  base/docker-compose-base.yaml
+      service: peer1.nsp2.example.com
+    networks:
+      - byfn
+
+peer0.nsp3.example.com:
+    container_name: peer0.nsp3.example.com
+extends:
+    file: peer-base.yaml
+    service: peer-base
+environment:
+    - CORE_PEER_ID=peer0.nsp3.example.com
+    - CORE_PEER_ADDRESS=peer0.nsp3.example.com:7051
+    - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.nsp3.example.com:7051
+    - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.nsp3.example.com:7051
+    - CORE_PEER_LOCALMSPID=NSP3MSP
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdbnsp3peer0:5984
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+    - COUCHDB_USER=
+    - COUCHDB_PASSWORD=
+volumes:
+      - /var/run/:/host/var/run/
+      - ../crypto-config/peerOrganizations/nsp3.example.com/peers/peer0.nsp3.example.com/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/nsp3.example.com/peers/peer0.nsp3.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer0.nsp3.example.com:/var/hyperledger/production
+ports:
+    - 7051:7051
+    - 7053:7053
+
+depends_on:
+  - couchdbnsp3peer0
+
+couchdb1:
+  container_name: couchdbnsp3peer0
+  image: hyperledger/fabric-couchdb
+
+ports:
+  - "6984:5984"
+
+extends:
+   file: base/docker-compose-base.yaml
+   service: peer0.nsp3.example.com
+   networks:
+      - byfn
+
+peer1.nsp3.example.com:
+    container_name: peer1.nsp3.example.com
+extends:
+    file: peer-base.yaml
+    service: peer-base
+environment:
+    - CORE_PEER_ID=peer1.nsp3.example.com
+    - CORE_PEER_ADDRESS=peer1.nsp3.example.com:7051
+    - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.nsp3.example.com:7051
+    - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.nsp3.example.com:7051
+    - CORE_PEER_LOCALMSPID=NSP3MSP
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdbnsp3peer1:5984
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+    - COUCHDB_USER=
+    - COUCHDB_PASSWORD=
+volumes:
+      - /var/run/:/host/var/run/
+      - ../crypto-config/peerOrganizations/nsp3.example.com/peers/peer1.nsp3.example.com/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/nsp3.example.com/peers/peer1.nsp3.example.com/tls:/etc/hyperledger/fabric/tls
+      - peer1.nsp3.example.com:/var/hyperledger/production
+ports:
+    - 7051:7051
+    - 7053:7053
+
+depends_on:
+  - couchdbnsp3peer1
+
+couchdb1:
+  container_name: couchdbnsp3peer1
+  image: hyperledger/fabric-couchdb
+
+ports:
+  - "6984:5984"
+
+  extends:
+    file:  base/docker-compose-base.yaml
+    service: peer1.nsp3.example.com
+    networks:
+      - byfn
+
+peer0.nsp4.example.com:
+  container_name: peer0.nsp4.example.com
+
+extends:
+  file: peer-base.yaml
+  service: peer-base
+environment:
+  - CORE_PEER_ID=peer0.nsp4.example.com
+  - CORE_PEER_ADDRESS=peer0.nsp4.example.com:7051
+  - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.nsp4.example.com:7051
+  - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.nsp4.example.com:7051
+  - CORE_PEER_LOCALMSPID=NSP4MSP
+  - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+  - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdbnsp4peer0:5984
+  - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+  - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+  - COUCHDB_USER=
+  - COUCHDB_PASSWORD=
+volumes:
+  - /var/run/:/host/var/run/
+  - ../crypto-config/peerOrganizations/nsp3.example.com/peers/peer0.nsp4.example.com/msp:/etc/hyperledger/fabric/msp
+  - ../crypto-config/peerOrganizations/nsp3.example.com/peers/peer0.nsp4.example.com/tls:/etc/hyperledger/fabric/tls
+  - peer0.nsp4.example.com:/var/hyperledger/production
+ports:
+- 7051:7051
+- 7053:7053
+
+depends_on:
+- couchdbnsp4peer0
+
+couchdb1:
+container_name: couchdbnsp4peer0
+image: hyperledger/fabric-couchdb
+
+ports:
+- "6984:5984"
+
+  extends:
+    file:  base/docker-compose-base.yaml
+    service: peer0.nsp4.example.com
+  networks:
+    - byfn
+
+peer1.nsp4.example.com:
+  container_name: peer1.nsp4.example.com
+
+extends:
+  file: peer-base.yaml
+  service: peer-base
+environment:
+  - CORE_PEER_ID=peer1.nsp4.example.com
+  - CORE_PEER_ADDRESS=peer1.nsp4.example.com:7051
+  - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.nsp4.example.com:7051
+  - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.nsp4.example.com:7051
+  - CORE_PEER_LOCALMSPID=NSP4MSP
+  - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+  - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdbnsp4peer1:5984
+  - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+  - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+  - COUCHDB_USER=
+  - COUCHDB_PASSWORD=
+volumes:
+  - /var/run/:/host/var/run/
+  - ../crypto-config/peerOrganizations/nsp4.example.com/peers/peer1.nsp4.example.com/msp:/etc/hyperledger/fabric/msp
+  - ../crypto-config/peerOrganizations/nsp4.example.com/peers/peer1.nsp4.example.com/tls:/etc/hyperledger/fabric/tls
+  - peer1.nsp4.example.com:/var/hyperledger/production
+ports:
+- 7051:7051
+- 7053:7053
+
+depends_on:
+- couchdbnsp4peer1
+
+couchdb1:
+container_name: couchdbnsp4peer1
+image: hyperledger/fabric-couchdb
+
+ports:
+- "6984:5984"
+
+  extends:
+    file:  base/docker-compose-base.yaml
+    service: peer1.nsp4.example.com
+  networks:
+    - byfn

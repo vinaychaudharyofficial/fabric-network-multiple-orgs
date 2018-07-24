@@ -1,0 +1,169 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+---
+################################################################################
+#
+#   Section: Organizations
+#
+#   - This section defines the different organizational identities which will
+#   be referenced later in the configuration.
+#
+################################################################################
+Organizations:
+
+
+    - &OrdererOrg
+
+        Name: OrdereringService
+
+
+        ID: OrdererMSP
+
+
+        MSPDir: crypto-config/ordererOrganizations/example.com/msp
+
+    - &NSP1
+
+        Name: NSP1MSP
+
+
+        ID: NSP1MSP
+
+        MSPDir: crypto-config/peerOrganizations/nsp1.example.com/msp
+
+        AnchorPeers:
+
+            - Host: peer0.nsp1.example.com
+              Port: 7051
+
+    - &NSP2
+
+        Name: NSP2MSP
+
+
+        ID: NSP2MSP
+
+        MSPDir: crypto-config/peerOrganizations/nsp2.example.com/msp
+
+        AnchorPeers:
+
+            - Host: peer0.nsp2.example.com
+              Port: 7051
+
+- &NSP3
+
+        Name: NSP3MSP
+
+
+        ID: NSP3MSP
+
+        MSPDir: crypto-config/peerOrganizations/nsp3.example.com/msp
+
+        AnchorPeers:
+
+            - Host: peer0.nsp3.example.com
+              Port: 7051
+
+
+ - &NSP4
+
+        Name: NSP4MSP
+
+
+        ID: NSP4MSP
+
+        MSPDir: crypto-config/peerOrganizations/nsp4.example.com/msp
+
+        AnchorPeers:
+
+            - Host: peer0.nsp4.example.com
+              Port: 7051
+
+
+
+
+
+Capabilities:
+
+    Global: &ChannelCapabilities
+
+        V1_1: true
+
+
+    Orderer: &OrdererCapabilities
+
+        V1_1: true
+
+
+    Application: &ApplicationCapabilities
+
+        V1_2: true
+
+Application: &ApplicationDefaults
+
+
+    Organizations:
+
+
+Orderer: &OrdererDefaults
+
+
+    OrdererType: solo
+
+    Addresses:
+        - orderer.example.com:7050
+
+
+    BatchTimeout: 2s
+
+
+    BatchSize:
+
+
+        MaxMessageCount: 10
+
+
+        AbsoluteMaxBytes: 99 MB
+
+        PreferredMaxBytes: 512 KB
+
+    Kafka:
+
+        Brokers:
+            - 127.0.0.1:9092
+
+    Organizations:
+
+
+Profiles:
+
+    TwoOrgsOrdererGenesis:
+        Capabilities:
+            <<: *ChannelCapabilities
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+            Capabilities:
+                <<: *OrdererCapabilities
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                    - *nsp1
+                    - *nsp2
+                    - *nsp3
+                    - *nsp4
+    TwoOrgsChannel:
+        Consortium: SampleConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *nsp1
+                - *nsp2
+                - *nsp3
+                - *nsp4
+            Capabilities:
+                <<: *ApplicationCapabilities
